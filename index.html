@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🎓 e-PLANIFICATOR v4</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<!-- ═══ SPLASH ═══ -->
+<div id="splashScreen">
+  <div class="sStage">
+    <div class="fb fb1"><span class="fbIco">⚙️</span><span class="fbLbl">Config</span></div>
+    <div class="fb fb2"><span class="fbIco">📝</span><span class="fbLbl">Itemi</span></div>
+    <div class="fb fb3"><span class="fbIco">🖥</span><span class="fbLbl">e-Curs</span></div>
+    <div class="fb fb4"><span class="fbIco">📤</span><span class="fbLbl">Export</span></div>
+    <div class="fb fb5"><span class="fbIco">📚</span><span class="fbLbl">Glosar</span></div>
+    <div class="fb fb6"><span class="fbIco">📊</span><span class="fbLbl">Matrice</span></div>
+    <div class="sDevice"><div class="sScreen">
+      <div class="sCap">🎓</div>
+      <div class="sWordmark">e-<b>PLANIFICATOR</b></div>
+      <div class="sTag">v4 · ÎPT MOLDOVA</div>
+    </div>
+    <div class="sLoadBar"><div class="sLoadFill" id="sLoadFill"></div><span class="sLoadPct" id="sLoadPct">0%</span></div>
+    </div>
+  </div>
+  <h1>e-PLANIFICATOR v4</h1>
+  <p>ÎPT Moldova · OMECC nr.644/2020 · pornire interactivă…</p>
+  <button class="sSkip" onclick="splashDone()">▶ Intră în aplicație</button>
+</div>
+
+<div class="nb">
+  <div class="logo">🎓 e-PLANIFICATOR<small>v4 · ÎPT Moldova · OMECC nr.644/2020</small></div>
+</div>
+<div class="sb">
+  <div class="sbi"><div class="dot" id="ds1"></div><span id="ss1">Disciplina</span></div>
+  <div class="sbi"><div class="dot" id="ds2"></div><span id="ss2">Module: 0</span></div>
+  <div class="sbi"><div class="dot" id="ds3"></div><span id="ss3">Ore: 0</span></div>
+  <div class="sbi"><div class="dot" id="ds4"></div><span id="ss4">Teste: 0</span></div>
+  <div class="sbi" style="margin-left:auto;color:#4a5568;font-size:8px">CNC: <b id="nivSt">3</b> | BDI: <b id="bdiSt">200</b> itemi</div>
+</div>
+<div class="eb" id="ebEl"></div>
+
+<div class="main">
+<div class="tabs">
+  <div class="tab on" id="t-cfg" onclick="gt('cfg')">⚙️<span class="tlbl">Config</span></div>
+  <div class="tab" id="t-itemi" onclick="gt('itemi')">📝<span class="tlbl">Itemi</span></div>
+  <div class="tab" id="t-preview" onclick="gt('preview')">👁️<span class="tlbl">Preview</span></div>
+  <div class="tab" id="t-exp" onclick="gt('exp')">📤<span class="tlbl">Export</span></div>
+  <div class="tab" id="t-manual" onclick="gt('manual')">📖<span class="tlbl">Manual</span></div>
+</div>
+
+<!-- CONFIG -->
+<div class="tp on" id="p-cfg">
+<input type="hidden" id="cNivel" value="3">
+<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+  <button class="b bp" style="flex:1;min-width:200px" onclick="loadDemo()">📄 Demo — Informatică cl.X</button>
+  <button class="b" style="flex:1;min-width:160px;border-color:#c62828;color:#c62828" onclick="resetAll()">🔄 Sesiune nouă</button>
+</div>
+<div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px">
+  <div><label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Disciplina *</label>
+    <input type="text" id="cDisc" placeholder="ex: Informatică, cl. a X-a" style="width:100%" oninput="sts()"></div>
+</div>
+<div class="ibox">⚡ <b>Flux:</b> Completați modulele → opțional UC → <b>⚡ GENEREAZĂ</b> → exportați <b>e-Curs .mbz</b> + <b>Bancă XML</b>.</div>
+
+<div class="sec" id="cs1">
+  <div class="sh" onclick="togSec('cs1')">
+    <div class="n">1</div>
+    <div class="ti">Administrarea disciplinei — Module și evaluări</div>
+    <div class="ar">▼</div>
+  </div>
+  <div class="sb2">
+    <div class="wbox" style="font-size:9px">Date preluate <b>STRICT</b> din tabelul <b>„Administrarea disciplinei"</b> / <b>„Repartizarea orelor pe unități de învățare"</b>, coloanele: <b>Unități de învățare</b>, <b>Nr. ore</b>, <b>Ore evaluare</b>.</div>
+    <div class="ibox" style="font-size:9px">⚙ <b>Nivelul 2 (Teme)</b> se generează <b>automat</b>: Tema 1 … Tema N, unde N = numărul de ore al modulului. <b>Nr. Eval.</b> determină exact numărul de teste generate pentru acel modul în Tabelul 2 (corespondență 1:1, obligatorie).</div>
+    <div class="tw" style="border:none;overflow:visible">
+      <table class="mt"><thead><tr><th style="width:34px">Nr.</th><th>Modul / Denumire</th><th style="width:70px;text-align:center">Ore</th><th style="width:80px;text-align:center">Nr. Eval.</th><th style="width:26px"></th></tr></thead>
+      <tbody id="modBody"></tbody></table>
+    </div>
+    <button class="adb" onclick="addRow()">＋ Adaugă modul</button>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button onclick="openImport()" class="b bp" style="flex:1;min-width:130px;padding:8px">📂 Import plan didactic (DOCX/PDF)</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <button onclick="dlTemeForm()" class="b" style="flex:1;min-width:130px;padding:8px;border-color:#1565c0;color:#1565c0">📄 Descarcă formular teme (DOCX)</button>
+      <input type="file" id="temeFormFile" accept=".docx,.doc" style="display:none" onchange="hTemeFormFile(this.files[0])">
+      <button onclick="document.getElementById('temeFormFile').click()" class="b" style="flex:1;min-width:130px;padding:8px;border-color:#1b5e20;color:#1b5e20">📥 Importă formular teme completat</button>
+      <button onclick="dlTemeDemo()" class="b" style="flex:1;min-width:130px;padding:8px">👁 Exemplu completat (demo)</button>
+    </div>
+    <div id="temeFormStat" style="font-size:9px;color:#a0aec0;margin-top:4px"></div>
+  </div>
+</div>
+
+<button class="genbtn" onclick="runAll()">⚡ GENEREAZĂ — Tabelul 2 · Matrice · Colecții · e-Curs Moodle · Bancă XML</button>
+</div>
+
+<!-- TABELUL 2 -->
+
+
+<!-- MATRICE -->
+
+
+<!-- TABELUL 3 -->
+
+
+<!-- E-CURS MBZ -->
+
+
+<!-- ITEMI -->
+<div class="tp" id="p-itemi">
+<div class="brow" style="margin-bottom:8px"><b style="font-size:12px">📝 Itemi — generare din material teoretic (DOCX/PDF)</b><div style="margin-left:auto"><button class="b" style="color:#c62828;border-color:#c62828" onclick="itmReset()">🔄 Resetează secțiunea</button></div></div>
+<div class="ibox">⚡ Selectați modulul/tema și nivelul, încărcați materialul teoretic, apoi <b>Generează itemi</b>. Itemii sunt placeholder-uri structurate (ca și restul aplicației) — le completați ulterior cu enunțul real.</div>
+<div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px">
+  <div>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Nivelul 1 — Denumirea modulului</label>
+    <select id="itmMod" style="width:100%;margin-bottom:10px" onchange="itmOnModChange()"><option value="">— selectați —</option></select>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Nivelul 2 — Tema</label>
+    <select id="itmTema" style="width:100%;margin-bottom:10px"><option value="">— selectați modulul —</option></select>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Nivel de complexitate</label>
+    <select id="itmNivel" style="width:100%;margin-bottom:10px" onchange="itmOnNivelChange()">
+      <option value="1">NC1 — Cunoaștere</option>
+      <option value="2">NC2 — Aplicare</option>
+      <option value="3">NC3 — Integrare/Transfer</option>
+    </select>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Tipul itemului</label>
+    <select id="itmTip" style="width:100%" onchange="itmShowRules()"></select>
+    <div id="itmRules" class="wbox" style="margin-top:8px;font-size:9px"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button onclick="itmDlTypeForm()" class="b" style="flex:1;min-width:150px;padding:7px;font-size:10px;border-color:#1565c0;color:#1565c0">📝 Completează formular</button>
+    </div>
+    <div class="sbox" style="margin-top:6px;font-size:8.5px">📂 Formularul completat se încarcă direct cu butonul „Încarcă fișier (DOCX/PDF)" de mai jos — itemii sunt recunoscuți automat, fără un buton separat.</div>
+    <div class="sbox" style="margin-top:6px;font-size:8.5px;display:none">
+      <b>📐 Cod poziţional (Fig. 6):</b> <code>Tx-Oy-Ni-F-99-Pk</code> — T=temă/UC, O=obiectiv în temă (implicit 1, aplicația nu urmărește obiective separate), N=nivel complexitate, F=formă item (
+      <span title="Alegere duală">D</span>=Duală, <span title="Alegere singulară">A</span>=singulară, <span title="Alegere multiplă">M</span>=multiplă, <span title="Tip pereche">P</span>=Pereche, <span title="Ordonare">O</span>=Ordonare, <span title="Răspuns scurt">S</span>=Scurt, <span title="Completare">C</span>=Completare, <span title="Selectare cuvinte lipsă">Z</span>=cuvinte lipsă, <span title="Randomsamatch">R</span>=Random, <span title="Eseu">I</span>=eseu, <span title="Eseu structurat">E</span>=Eseu structurat, <span title="Calculat">N</span>=Numeric-calculat, <span title="CodeRunner">L</span>=Limbaj/cod), 99=nr. ordine, P=punctaj.
+    </div>
+  </div>
+  <div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="file" id="itmFile" accept=".docx,.doc,.pdf" style="display:none" onchange="itmReadFile(this.files[0])">
+      <button class="b bp" onclick="document.getElementById('itmFile').click()" style="flex:1">📂 Încarcă fișier (DOCX/PDF)</button>
+      <span id="itmFileStat" style="font-size:9px;color:#a0aec0"></span>
+    </div>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Material teoretic (previzualizare)</label>
+    <div id="itmMaterial" style="width:100%;height:230px;overflow:auto;border:1px solid #dde3ec;border-radius:6px;padding:8px;font-size:9.5px;background:#fafbfc">
+      <div class="es" style="padding:20px"><div class="ei">📄</div>Încărcați un fișier DOCX/PDF cu materialul teoretic</div>
+    </div>
+    <div id="itmNrRow" style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <label style="font-size:10px;font-weight:700;color:#546e7a;white-space:nowrap">nr. itemi</label>
+      <input type="number" id="itmNr" value="5" min="1" max="50" style="width:70px">
+    </div>
+    <div id="itmRsmParams" style="display:none;gap:8px;margin-top:10px;padding:8px;background:#f3e5f5;border-radius:6px;border:1px solid #ce93d8">
+      <div style="flex:1">
+        <label style="font-size:9px;font-weight:700;color:#6a1b9a;display:block;margin-bottom:3px">Câți itemi parametrizați generez</label>
+        <input type="number" id="itmRsmN" value="1" min="1" max="20" style="width:100%">
+      </div>
+      <div style="flex:1">
+        <label style="font-size:9px;font-weight:700;color:#6a1b9a;display:block;margin-bottom:3px">Câte sub-itemi alege fiecare (choose)</label>
+        <input type="number" id="itmRsmChoose" value="5" min="3" max="20" style="width:100%">
+      </div>
+      <div style="flex:1">
+        <label style="font-size:9px;font-weight:700;color:#6a1b9a;display:block;margin-bottom:3px">Distractori în preview (0–2)</label>
+        <select id="itmRsmDistractors" style="width:100%">
+          <option value="0">0 — fără distractori</option>
+          <option value="1">1 distractor</option>
+          <option value="2" selected>2 distractori</option>
+        </select>
+      </div>
+    </div>
+    <div id="itmCalcParams" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding:8px;background:#e3f2fd;border-radius:6px;border:1px solid #90caf9">
+      <div style="background:#fff;border-radius:6px;padding:8px;border:1px dashed #1565c0">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="b bp" onclick="itmCalcAutoLoad()">🔄 Preia din tabelul încărcat</button>
+          <span id="itmCalcQueueInfo" style="font-size:9px;color:#546e7a"></span>
+        </div>
+        <div style="display:none;gap:6px;margin-top:6px" id="itmCalcNav">
+          <button class="b" onclick="itmCalcNavStep(-1)" style="flex:1">◀ Anterior</button>
+          <button class="b" onclick="itmCalcNavStep(1)" style="flex:1">Următor ▶</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Enunț (folosiți metacaractere între acolade, ex: {a}, {b})</label>
+        <input type="text" id="itmCalcQ" placeholder="ex: Cât este suma dintre {a} și {b}?" style="width:100%">
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Formula pentru răspuns</label>
+        <input type="text" id="itmCalcF" placeholder="ex: {a}+{b}" style="width:100%">
+      </div>
+      <button class="b" onclick="itmCalcDetect()" style="align-self:flex-start">🔍 Detectează metacaractere</button>
+      <div id="itmCalcWild"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Toleranță ±</label>
+          <input type="number" id="itmCalcTol" value="0.01" step="0.01" style="width:100%">
+        </div>
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Tip toleranță</label>
+          <select id="itmCalcTolType" style="width:100%">
+            <option value="1">Nominal</option>
+            <option value="2" selected>Relativ</option>
+            <option value="3">Geometric</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Zecimale afișate</label>
+          <input type="number" id="itmCalcDec" value="2" min="0" max="10" style="width:100%">
+        </div>
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#1565c0;display:block;margin-bottom:3px">Câte variante generez</label>
+          <input type="number" id="itmCalcN" value="3" min="1" max="20" style="width:100%">
+        </div>
+      </div>
+    </div>
+    <div id="itmCrParams" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding:8px;background:#e8f5e9;border-radius:6px;border:1px solid #a5d6a7">
+      <div style="background:#fff;border-radius:6px;padding:8px;border:1px dashed #2e7d32">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="b bg" onclick="itmCrAutoLoad()">🔄 Preia din tabelul încărcat</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#2e7d32;display:block;margin-bottom:3px">Limbaj</label>
+          <select id="itmCrLang" style="width:100%">
+            <option value="python3">Python 3</option>
+            <option value="c_program">C (program)</option>
+            <option value="c_function">C (funcție)</option>
+            <option value="cpp_program">C++</option>
+            <option value="pascal_program">Pascal</option>
+            <option value="java_method">Java (metodă)</option>
+            <option value="nodejs">JavaScript (Node.js)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#2e7d32;display:block;margin-bottom:3px">Nr. teste (min. 1)</label>
+          <input type="number" id="itmCrTestN" value="3" min="1" max="20" style="width:100%">
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:6px;padding:8px;border:1px dashed #66bb6a">
+        <label style="font-size:9px;font-weight:700;color:#2e7d32;display:block;margin-bottom:3px">📥 Încărcare în lot — enunțuri multiple (separate printr-o linie goală), unul câte unul mai jos</label>
+        <textarea id="itmCrBatch" rows="3" placeholder="Enunț 1...
+
+Enunț 2...
+
+Enunț 3..." style="width:100%;font-size:10px"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap">
+          <button class="b" onclick="itmCrLoadBatch()">📥 Încarcă în coadă</button>
+          <span id="itmCrQueueInfo" style="font-size:9px;color:#546e7a"></span>
+        </div>
+        <div style="display:none;gap:6px;margin-top:6px" id="itmCrNav">
+          <button class="b" onclick="itmCrNavStep(-1)" style="flex:1">◀ Anterior</button>
+          <button class="b bp" onclick="itmCrSaveCurrent()" style="flex:1">💾 Salvează enunțul curent</button>
+          <button class="b" onclick="itmCrNavStep(1)" style="flex:1">Următor ▶</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:700;color:#2e7d32;display:block;margin-bottom:3px">Enunț</label>
+        <textarea id="itmCrQ" rows="2" placeholder="ex: Scrieți o funcție care calculează pătratul unui număr." style="width:100%;font-family:inherit"></textarea>
+      </div>
+      <div>
+        <label style="font-size:9px;font-weight:700;color:#2e7d32;display:block;margin-bottom:3px">Soluție model (cod de referință)</label>
+        <textarea id="itmCrModel" rows="4" placeholder="ex: def sqr(n): return n*n" style="width:100%;font-family:'Courier New',monospace;font-size:10px"></textarea>
+      </div>
+      <button class="b" onclick="itmCrBuildTests()" style="align-self:flex-start">🔧 Construiește tabelul de teste</button>
+      <div id="itmCrTests"></div>
+      <div style="background:#fff;border-radius:6px;padding:8px;border:1px dashed #ab47bc">
+        <label style="font-size:9px;font-weight:700;color:#6a1b9a;display:block;margin-bottom:3px">🎲 Randomizare opțională — folosiți metacaractere {a},{b} în enunț și/sau în intrare/ieșire așteptată</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="b" onclick="itmCrDetectWild()">🔍 Detectează metacaractere</button>
+          <label style="font-size:9px;color:#6a1b9a">Câte variante:</label>
+          <input type="number" id="itmCrRandN" value="3" min="1" max="20" style="width:60px">
+          <button class="b bv" onclick="itmCrRandomize()">🎲 Generează variante în coadă</button>
+        </div>
+        <div id="itmCrWild"></div>
+      </div>
+    </div>
+    <div id="itmNumParams" style="display:none;flex-direction:column;gap:8px;margin-top:10px;padding:8px;background:#fff3e0;border-radius:6px;border:1px solid #ffcc80">
+      <div>
+        <label style="font-size:9px;font-weight:700;color:#e65100;display:block;margin-bottom:3px">Enunț</label>
+        <textarea id="itmNumQ" rows="2" placeholder="ex: Calculați aria unui cerc cu raza 5 cm (π≈3,14)." style="width:100%"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#e65100;display:block;margin-bottom:3px">Răspuns numeric corect</label>
+          <input type="number" id="itmNumAns" step="any" placeholder="ex: 78.5" style="width:100%">
+        </div>
+        <div>
+          <label style="font-size:9px;font-weight:700;color:#e65100;display:block;margin-bottom:3px">Toleranță ±</label>
+          <input type="number" id="itmNumTol" step="any" value="0.5" style="width:100%">
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:10px"><button class="b bg" onclick="itmGenerate()" style="width:100%">⚡ Generează itemi</button></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="b bp" onclick="itmToBank()" style="flex:1">📥 Încarcă în bancă</button>
+      <button class="b" onclick="showBanca()" style="flex:1;border-color:#1b5e20;color:#1b5e20">🗄️ Vezi banca (<span id="bancaCount">0</span>)</button>
+      <button class="b bv" onclick="itmPreview()" style="flex:1">👁 Preview itemi</button>
+      <button class="b" onclick="itmDlGift()" style="flex:1">⬇ Descarcă GIFT</button>
+      <button class="b" style="flex:1;border-color:#6a1b9a;color:#6a1b9a" onclick="itmDlXml()">⬇ Format XML</button>
+    </div>
+    <div id="itmStat" style="font-size:9px;color:#a0aec0;margin-top:6px"></div>
+  </div>
+</div>
+<div id="itmPrevBox" style="margin-top:12px"></div>
+
+<span id="tabImpStat" style="font-size:9px;color:#a0aec0"></span>
+<div id="tabImpModWrap" style="display:none;margin-bottom:8px;margin-top:12px">
+  <label style="font-size:9px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Modul / Temă pentru toți itemii importați (obligatoriu)</label>
+  <select id="tabImpModTema" style="width:100%;max-width:420px;border-color:#e65100" onchange="this.style.borderColor=this.value?'#a5d6a7':'#e65100'"></select>
+</div>
+<div id="tabImpPreview"></div>
+<div style="display:flex;gap:8px;margin-top:8px" id="tabImpActions"></div>
+
+<div class="brow" style="margin-top:16px;margin-bottom:8px;padding-top:12px;border-top:2px solid #dde3ec"><b style="font-size:12px">📚 Glosar — noțiuni din material teoretic</b></div>
+<div class="ibox">⚡ Reutilizează fișierul DOCX/PDF încărcat mai sus. Dacă tabelul are exact 2 coloane (Termen | Definiție), le extrage direct; altfel generează concepte placeholder de completat.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end">
+  <div>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">Nume glosar</label>
+    <input type="text" id="glsName" placeholder="ex: Vocabularul temei" style="width:100%">
+  </div>
+  <div>
+    <label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:3px">nr. noțiuni (dacă nu sunt perechi în tabel)</label>
+    <input type="number" id="glsNr" value="10" min="1" max="100" style="width:100%">
+  </div>
+  <button class="b bg" onclick="itmGlossaryGenerate()">⚡ Generează glosar</button>
+</div>
+<div style="display:flex;gap:8px;margin-top:8px">
+  <button class="b bv" onclick="itmGlossaryPreview()" style="flex:1">👁 Preview glosar</button>
+  <button class="b" style="flex:1;border-color:#1565c0;color:#1565c0" onclick="itmGlossaryDlXml()">⬇ Descarcă XML (Glosar Moodle)</button>
+  <button class="b" style="flex:1;border-color:#6a1b9a;color:#6a1b9a" onclick="itmGlossaryToRSPool()">📥 Adaugă în bancă (pool RSM)</button>
+</div>
+<div id="glsStat" style="font-size:9px;color:#a0aec0;margin-top:6px"></div>
+<div id="glsPrevBox" style="margin-top:10px"></div>
+</div>
+
+
+<!-- PREVIEW -->
+<div class="tp" id="p-preview">
+<b style="font-size:12px">👁️ Preview secțiuni</b>
+<div class="ibox">⚡ Alegeți mai jos secțiunea pe care vreți să o vedeți — conținutul ei apare imediat, la fel ca înainte, doar accesul se face acum de aici, nu din bara de navigare.</div>
+<label style="font-size:10px;font-weight:700;color:#546e7a;display:block;margin-bottom:5px">Secțiune</label>
+<select id="previewSel" style="width:100%;max-width:420px;font-size:12px;padding:8px" onchange="showSub(this.value)">
+  <option value="">— selectați o secțiune —</option>
+  <option value="t2">📋 Tabelul 2</option>
+  <option value="mat">📊 Matrice</option>
+  <option value="t3">📦 Colecții</option>
+  <option value="curs">🖥 e-Curs .mbz</option>
+  <option value="gift">💾 Bancă XML</option>
+</select>
+<div class="tp-sub" id="p-t2">
+<div class="brow" style="margin-bottom:8px"><b style="font-size:12px">📋 Tabelul 2 — Lista testelor</b><div style="margin-left:auto"><button class="b bp" onclick="expT2()">⬇ DOCX</button></div></div>
+<div id="t2W"><div class="es"><div class="ei">📋</div>Apăsați ⚡ GENEREAZĂ</div></div>
+</div>
+<div class="tp-sub" id="p-mat">
+<div style="display:flex;height:calc(100vh - 150px);min-height:350px">
+  <div class="spl" id="matTree"><div class="es"><div class="ei">📊</div>Generați</div></div>
+  <div class="spr" id="matC"><div class="es"><div class="ei">👈</div>Selectați testul</div></div>
+</div>
+</div>
+<div class="tp-sub" id="p-t3">
+<div class="brow" style="margin-bottom:8px"><b style="font-size:12px">📦 Tabelul 3 — Colecții BDI</b><div style="margin-left:auto"><button class="b bp" onclick="expT3()">⬇ DOCX</button></div></div>
+<div id="t3W"><div class="es"><div class="ei">📦</div>Apăsați ⚡ GENEREAZĂ</div></div>
+</div>
+<div class="tp-sub" id="p-curs">
+<div class="brow" style="margin-bottom:8px">
+  <b style="font-size:12px">🖥 Structura e-Cursului — export Moodle Backup (.mbz)</b>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="b" onclick="expCursDocx()" style="font-size:11px">⬇ Descarcă DOCX (structură curs)</button>
+    <button class="b bg" onclick="expCurs()" style="font-size:11px">⬇ Descarcă .mbz</button>
+  </div>
+</div>
+<div class="sbox"><b>📦 Format real Moodle Backup (.mbz):</b> Importabil direct prin <i>Administration → Restore</i>.</div>
+<div id="cursW"><div class="es"><div class="ei">🖥</div>Apăsați ⚡ GENEREAZĂ</div></div>
+</div>
+<div class="tp-sub" id="p-gift">
+<div class="brow" style="margin-bottom:8px">
+  <b style="font-size:12px">💾 Bancă de itemi — Moodle XML nativ cu ierarhie de categorii</b>
+  <div style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+    <button class="b bv" onclick="previewBank()">👁 Preview ierarhie</button>
+    <button class="b bg" onclick="dlMoodleXML()">⬇ Moodle XML (.xml)</button>
+    <button class="b" onclick="dlGift()">⬇ GIFT (.gift)</button>
+    <span id="giftStat" style="font-size:9px;color:#a0aec0"></span>
+  </div>
+</div>
+<div class="sbox" style="font-size:9px"><b>Format Moodle XML nativ</b>: Question bank → Import → Moodle XML.<br><b>Format GIFT</b>: alternativă text.</div>
+<div class="go" id="giftO"><span class="gm">// Apăsați ⚡ GENEREAZĂ…</span></div>
+</div>
+</div>
+
+<!-- EXPORT -->
+<div class="tp" id="p-exp">
+<b style="font-size:12px">📤 Produse livrabile</b>
+<div id="expSum" style="font-size:9.5px;color:#a0aec0;margin-top:4px;margin-bottom:10px"></div>
+<div class="dg">
+  <div class="dc emp"><div class="ico">📋</div><h4>Tabelul 2</h4><p>Lista testelor.</p><div class="st" id="dc1s">—</div><button class="b bp" onclick="expT2()" style="margin-top:5px">⬇ DOCX</button></div>
+  <div class="dc emp"><div class="ico">📊</div><h4>Matrice Specificații</h4><p>Format OMECC §7.5.</p><div class="st" id="dc2s">—</div><button class="b bp" onclick="expMat()" style="margin-top:5px">⬇ DOCX</button></div>
+  <div class="dc emp"><div class="ico">📦</div><h4>Tabelul 3</h4><p>Colecții BDI.</p><div class="st" id="dc3s">—</div><button class="b bg" onclick="expT3()" style="margin-top:5px">⬇ DOCX</button></div>
+  <div class="dc emp"><div class="ico">🖥</div><h4>e-Curs Moodle</h4><p>.mbz importabil.</p><div class="st" id="dc4s">—</div><button class="b bg" onclick="expCurs()" style="margin-top:5px">⬇ .mbz</button></div>
+  <div class="dc emp"><div class="ico">💾</div><h4>Bancă Moodle XML</h4><p>Categorii + itemi.</p><div class="st" id="dc5s">—</div><button class="b bv" onclick="dlMoodleXML()" style="margin-top:5px">⬇ .xml</button></div>
+</div>
+</div>
+
+<!-- MANUAL -->
+<div class="tp" id="p-manual">
+<b style="font-size:14px">📖 Manualul aplicației e-PLANIFICATOR v4</b>
+
+<div class="alc" style="margin-top:12px"><h4>1. Cerințe de sistem</h4>
+<div style="font-size:10px;line-height:1.9;color:#444">
+• Un navigator web modern (Chrome, Edge, Firefox) — nu necesită instalare, cont sau conexiune la internet pentru funcțiile de bază.<br>
+• Aplicația e un singur fișier HTML, autonom — rulează direct, deschis local, pe orice calculator Windows/Linux/macOS.<br>
+• Pentru itemii CodeRunner cu rulare de cod Python/JavaScript e nevoie, la prima rulare, de o scurtă conexiune la internet (încărcarea interpretorului Pyodide).<br>
+• Datele introduse (disciplină, module, itemi) rămân doar în sesiunea curentă a browserului — nimic nu se trimite către niciun server.
+</div></div>
+
+<div class="alc"><h4>2. Destinația aplicației</h4>
+<div style="font-size:10px;line-height:1.9;color:#444">
+Aplicația este destinată cadrelor didactice din învățământul profesional tehnic (ÎPT) din Republica Moldova, pentru automatizarea planificării didactice de lungă durată și a generării băncilor de itemi compatibile Moodle — conform Ordinului MECC nr.644/2020. Elimină redactarea manuală, repetitivă, a documentelor de proiectare și a fișierelor tehnice de import în platforma de e-learning.
+</div></div>
+
+<div class="alc"><h4>3. Mecanismul de funcționare</h4>
+<div class="ibox" style="font-size:9.5px">Surse: <b>OMECC nr.644/13.07.2020</b> · <b>Bragaru T., Arnaut V. (2017)</b> · <b>Bloom B.S. (1956)</b></div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.1. Distribuția NC — OMECC 644/2020, Tabelul 11</h5>
+<table class="tw"><thead><tr><th>Tipul testului</th><th>NC1</th><th>NC2</th><th>NC3</th><th>N</th><th>Timp</th><th>Prag</th></tr></thead><tbody>
+<tr><td>Evaluare Inițială</td><td class="c1">60%</td><td class="c2">30%</td><td class="c3">10%</td><td>15</td><td>45 min</td><td>30%</td></tr>
+<tr><td>Test Formativ/Tematic</td><td class="c1">50%</td><td class="c2">35%</td><td class="c3">15%</td><td>16</td><td>55 min</td><td>50%</td></tr>
+<tr><td>Evaluare Intermediară</td><td class="c1">30%</td><td class="c2">40%</td><td class="c3">30%</td><td>30</td><td>80 min</td><td>70%</td></tr>
+<tr><td>Examen Final CNC 3</td><td class="c1">20%</td><td class="c2">30%</td><td class="c3">50%</td><td>30</td><td>90 min</td><td>70%</td></tr>
+<tr><td>Examen Final CNC 4</td><td class="c1">20%</td><td class="c2">30%</td><td class="c3">50%</td><td>40</td><td>120 min</td><td>70%</td></tr>
+</tbody></table>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.2. Matricea de Specificații</h5>
+<div class="formula">n_{i,j} = round( N × p_j × w_i )
+w_i = ore_i / Σ ore_acoperite_de_test
+P_max = Σ n_{NC1}×1p + Σ n_{NC2}×2p + Σ n_{NC3}×4p</div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.3. BDI minim și distribuție</h5>
+<div class="formula">BDI_min = 200 (CNC 3) / 400 (CNC 4)
+BDI_modul_i = round( BDI_min × ore_i / Σore )
+NC1: 50% → AD, AM, AP  |  NC2: 30% → RS, C, TP  |  NC3: 20% → Str, ES</div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.4. Schema de notare — Tabelul 14</h5>
+<div class="formula">% → Nota: 0–4%→1  5–9%→2  10–20%→3  21–32%→4
+33–47%→5  48–62%→6  63–77%→7  78–87%→8  88–94%→9  95–100%→10</div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.5. Corespondență Nr. Eval. ↔ Tabelul 2</h5>
+<div class="formula">K = Nr. Eval. (din Administrarea disciplinei)
+K=1  → 1 test Formativ
+K&gt;1 → (K-1) teste Formative + 1 test Intermediar (sumativ)
+Total teste generate pentru modul = K, întotdeauna</div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.6. Structura ierarhică — e-Curs Moodle (.mbz)</h5>
+<div class="formula">Curs: [Disciplina]
+├─ Secțiunea 0 — Informații generale
+│   ├─ Forum: Comunicare
+│   ├─ Glosar: Termeni cheie
+│   └─ Quiz: Test Inițial
+├─ Secțiunea i — Modulul i (per modul din Admin. disciplinei)
+│   ├─ Page: Prezentare modul
+│   ├─ (per Temă) Page + Link video/web, cu Quiz la fiecare a 2-a temă
+│   ├─ H5P: Joc educațional
+│   ├─ Assignment: Portofoliu
+│   └─ Quiz: Test(e) conform Nr. Eval.
+└─ Secțiunea finală — Examen Final</div>
+
+<h5 style="font-size:10.5px;margin:10px 0 4px">3.7. Structura ierarhică — Bancă GIFT / Moodle XML</h5>
+<div class="formula">$course$/top/BDI/[Disciplina]
+└─ Modulul i  (M01, M02, …)
+    └─ Tema j  (UC1xj … UCNxj)
+        └─ NC1_Cunoastere / NC2_Aplicare / NC3_Integrare
+            └─ Tip item (AD, AP, AM, RS, C, TP, Str, ES)
+                └─ 2–3 itemi placeholder / categorie</div>
+</div>
+
+<div class="alc"><h4>4. Pașii de parcurgere — de la introducere la livrarea produselor</h4>
+<div style="font-size:10px;line-height:2;color:#444">
+<b>1.</b> În <b>Config</b>: introduceți denumirea disciplinei, nivelul CNC, apoi modulele (denumire, ore, nr. evaluări) — manual, prin import de plan didactic (DOCX/PDF), sau apăsând <b>Demo</b> pentru date reale de test.<br>
+<b>2.</b> Opțional: descărcați <b>formularul de teme</b>, completați denumirile reale ale unităților de conținut, apoi reîncărcați-l.<br>
+<b>3.</b> Apăsați <b>⚡ GENEREAZĂ</b> — se construiesc automat Tabelul 2, Matricea, Colecția, structura e-Curs și banca de itemi.<br>
+<b>4.</b> În <b>Itemi</b>: pentru fiecare modul/temă/tip, fie generați itemi-placeholder automat din material teoretic, fie apăsați <b>📝 Completează formular</b> pentru a descărca un tabel gol, specific tipului ales (vezi secțiunea 5), îl completați în Word cu itemi reali, apoi îl reîncărcați cu <b>📂 Încarcă fișier (DOCX/PDF)</b> — este recunoscut automat ca formular completat.<br>
+<b>5.</b> În <b>Preview</b>: alegeți din listă secțiunea dorită (Tabelul 2, Matrice, Colecții, e-Curs, Bancă XML) pentru a vedea și descărca fiecare produs.<br>
+<b>6.</b> În <b>Export</b>: punctul central de descărcare a tuturor produselor finale — documente DOCX, pachet .mbz, bancă XML/GIFT.
+</div></div>
+
+<div class="alc"><h4>5. Exemple de tabele pentru banca de conținuturi de itemi</h4>
+<div class="ibox" style="font-size:9.5px">Aceste formate sunt folosite atât la <b>generarea</b> formularului gol (butonul „📝 Completează formular" din Itemi), cât și la <b>recunoașterea automată</b> a unui document deja redactat de dvs., cu itemi reali, importat direct.</div>
+<div id="manualShapes" style="margin-top:8px"></div>
+</div>
+
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="dlgo" id="dlgReset"><div class="dlgb" style="max-width:380px">
+  <h3>🔄 Confirmare Resetare<button onclick="closeDlg('dlgReset')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div class="wbox">Acțiunea șterge toate datele din sesiunea curentă.</div>
+  <div class="dlgbt"><button class="b" style="background:#c62828;color:#fff;border-color:#c62828" onclick="doReset()">🗑 Da, resetează</button><button class="b" onclick="closeDlg('dlgReset')">Anulează</button></div>
+</div></div>
+
+<div class="dlgo" id="dlgItmReset"><div class="dlgb" style="max-width:380px">
+  <h3>🔄 Resetare secțiune Itemi<button onclick="closeDlg('dlgItmReset')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div class="wbox">Resetați datele din secțiunea Itemi (modul/temă/fișier/itemi/glosar generate)? Restul aplicației nu este afectat.</div>
+  <div class="dlgbt"><button class="b" style="background:#c62828;color:#fff;border-color:#c62828" onclick="doItmReset()">🗑 Da, resetează</button><button class="b" onclick="closeDlg('dlgItmReset')">Anulează</button></div>
+</div></div>
+
+<div class="dlgo" id="dlgBanca"><div class="dlgb" style="max-width:760px">
+  <h3>🗄️ Banca de itemi <span id="bancaTitleCount" style="color:#546e7a;font-weight:400;font-size:12px"></span><button onclick="closeDlg('dlgBanca')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div id="bancaBody" style="max-height:60vh;overflow:auto"></div>
+  <div class="dlgbt">
+    <button class="b" style="background:#c62828;color:#fff;border-color:#c62828" onclick="clearBanca()">🗑 Golește banca</button>
+    <button class="b" onclick="closeDlg('dlgBanca')">Închide</button>
+  </div>
+</div></div>
+
+<div class="dlgo" id="dlgImp"><div class="dlgb">
+  <h3>📂 Import plan didactic<button onclick="closeDlg('dlgImp')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div class="ibox" style="font-size:9px"><b>Modulele</b> se preiau STRICT din tabelul „Administrarea disciplinei". <b>Temele</b> (Nivelul 2) se generează automat: Tema 1…Tema N (N = nr. ore al modulului) — nu mai necesită import separat.</div>
+  <div class="dz" id="impDZ" onclick="document.getElementById('impFile').click()"
+    ondragover="event.preventDefault();this.classList.add('ov')"
+    ondragleave="this.classList.remove('ov')"
+    ondrop="event.preventDefault();this.classList.remove('ov');hImpFile(event.dataTransfer.files[0])">
+    <div style="font-size:22px;margin-bottom:4px">📄</div>
+    <div style="font-size:10px;font-weight:700;color:#1a1a2e">Click sau trageți DOCX/PDF</div>
+    <div id="impStat" style="font-size:9px;margin-top:5px;min-height:14px;font-weight:600"></div>
+  </div>
+  <input type="file" id="impFile" accept=".docx,.pdf" style="display:none" onchange="hImpFile(this.files[0])">
+  <div style="text-align:center;color:#a0aec0;font-size:9px;margin:8px 0">— sau —</div>
+  <textarea id="impTxt" style="width:100%;height:80px;font-family:Consolas;font-size:10px" placeholder="Lipiți tabelul copiat…"></textarea>
+  <div id="impPrev" style="display:none;font-size:9px;color:#1b5e20;padding:4px 8px;background:#e8f5e9;border-radius:4px;margin-bottom:5px"></div>
+  <div class="dlgbt">
+    <button class="b bp" onclick="runImpDlg()">🔍 Detectează și inserează</button>
+    <button class="b" onclick="closeDlg('dlgImp')">Anulează</button>
+  </div>
+</div></div>
+
+<div class="dlgo" id="dlgUC"><div class="dlgb" style="max-width:460px">
+  <h3 id="ucTitle">Unități de Conținut<button onclick="closeDlg('dlgUC')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div class="ibox" style="font-size:9px">O UC per linie, format: <b>Denumire: ore</b></div>
+  <textarea id="ucTxt" style="width:100%;height:140px;font-size:11px;font-family:Consolas" placeholder="Bazele algoritmicii: 10&#10;Tipuri de date: 15"></textarea>
+  <div class="dlgbt">
+    <button class="b bp" onclick="saveUC()">💾 Salvează UC</button>
+    <button class="b" onclick="closeDlg('dlgUC')">Anulează</button>
+  </div>
+</div></div>
+
+<div class="dlgo" id="dlgPreview"><div class="dlgb" style="max-width:700px">
+  <h3>👁 Preview — Structura ierarhică a băncii<button onclick="closeDlg('dlgPreview')" class="b" style="padding:2px 7px">✕</button></h3>
+  <div class="ibox" style="font-size:9px;margin-bottom:10px">Ierarhia: <b>$course$/top/BDI/[Disc]/Modul/UC/NC/TipItem</b>.</div>
+  <div id="prevBankContent" class="prev-root"></div>
+  <div class="dlgbt">
+    <button class="b bg" onclick="dlMoodleXML()">⬇ Moodle XML</button>
+    <button class="b" onclick="dlGift()">⬇ GIFT</button>
+    <button class="b" onclick="closeDlg('dlgPreview')">Închide</button>
+  </div>
+</div></div>
+
+
+
+<div class="toast" id="toastEl"></div>
+
+<script src="script/main.js"></script>
+</body>
+</html>
